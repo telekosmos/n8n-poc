@@ -1,0 +1,159 @@
+{
+  "active": false,
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "FTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FTP": {
+      "main": [
+        [
+          {
+            "node": "Spreadsheet File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spreadsheet File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-02T12:33:41.598Z",
+  "id": "BtMEJ0wtTsOxNN8m",
+  "meta": null,
+  "name": "SFTP + mongo",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "id": "71877f3b-2faa-4e95-a8d4-15f94932f8b6",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "protocol": "sftp",
+        "path": "/upload/henryjohnson.xlsx"
+      },
+      "id": "0a7ba6de-eaa0-4949-9190-a64e87c385c0",
+      "name": "FTP",
+      "type": "n8n-nodes-base.ftp",
+      "typeVersion": 1,
+      "position": [
+        660,
+        460
+      ],
+      "credentials": {
+        "sftp": {
+          "id": "7mXadW1org9MKPi6",
+          "name": "FTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileFormat": "xlsx",
+        "options": {}
+      },
+      "id": "e6ae6fd1-6ea7-41b8-839e-3d0f02e7c88f",
+      "name": "Spreadsheet File",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        880,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"vintage\": {{ typeof $json.Vintage === 'string' ? 0: $json.Vintage }},\n  \"alcohol_by_volume\": {{ $ifEmpty($json.ABV, 0) }},\n  \"itemId\": \"{{ $json[\"Catalogue Item\"] }}\",\n  \"duty\": \"{{ $json['Duty Paid'] }}\",\n  \"case_size\": {{ $json['Case size'] }},\n  \"customerPL\": {{ $json[\"Customer P&L\"] }}\n} ",
+        "include": "selected",
+        "options": {}
+      },
+      "id": "73775c01-00f2-4846-9e0b-7bc124250435",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1100,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "test",
+        "fields": "={{ Object.keys($json).join(',') }}",
+        "options": {}
+      },
+      "id": "8fa1074e-ea16-462c-8405-d2b21f6e1f11",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        460
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrencyRules": []
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-03T07:56:44.000Z",
+  "versionId": "f87b8ce8-65bc-4320-b6ba-67c7394f3336"
+}
