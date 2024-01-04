@@ -1,0 +1,134 @@
+{
+  "active": true,
+  "connections": {
+    "Kafka Trigger": {
+      "main": [
+        [
+          {
+            "node": "Convert to JSON object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to JSON object": {
+      "main": [
+        [
+          {
+            "node": "Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-03T14:25:55.825Z",
+  "id": "yqZnqRorZ4oTl4O5",
+  "meta": null,
+  "name": "Kafka trigger test (pizza)",
+  "nodes": [
+    {
+      "parameters": {
+        "topic": "pizza-orders",
+        "groupId": "pypizza-orders-n8ntest1",
+        "options": {
+          "allowAutoTopicCreation": true,
+          "fromBeginning": true
+        }
+      },
+      "id": "55282cae-a7e7-4903-850b-264686a6f029",
+      "name": "Kafka Trigger",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        360,
+        420
+      ],
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "={{ $json.topic }}",
+        "fields": "={{ Object.keys($json).map((f, i) => i === 0 ? null: f).filter(e => e != null).join(',') }}",
+        "options": {}
+      },
+      "id": "ee8b5284-b2f6-4c25-845b-7897787d5783",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        420
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  topic: \"{{ $json.topic }}\",\n  orderId: \"{{ new Date($json.payload.timestamp).getTime() }}-{{ $json.payload.id }}\",\n    customer: \"{{ $json.payload.name }}\",\n    phone: \"{{ $json.payload.phoneNumber }}\",\n    amount: {{ $json[\"payload\"][\"pizzas\"].length }},\n    totalTopings: {{ $json[\"payload\"][\"pizzas\"].flatMap(p => p.additionalToppings).length }},\n    totalPizzas: {{ $json.payload.pizzas.length }},\n    pizzas: {{ $json.payload.pizzas.map(p => p.pizzaName) }},\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "8f51c71e-bc2c-4a7e-8b12-c5394ca1d424",
+      "name": "Transform",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        780,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  topic: \"{{ $input.item.json.topic }}\",\n  payload: {{ JSON.parse($input.item.json.message) }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "b52900bf-878b-4300-bd1b-e50dae227e5d",
+      "name": "Convert to JSON object",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        580,
+        420
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-04T15:43:53.000Z",
+  "versionId": "c0f87909-3b77-446f-832a-fdc5c717e59a"
+}
