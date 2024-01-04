@@ -1,0 +1,163 @@
+{
+  "active": false,
+  "connections": {
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Kafka",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-04T08:55:51.533Z",
+  "id": "MQAVHwLJxkyCgQSw",
+  "meta": null,
+  "name": "ISS position every minute to Kafka",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        380,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "c0dfab2e-db2d-48e2-ad60-e34ccc9c8de4"
+    },
+    {
+      "parameters": {
+        "url": "https://api.wheretheiss.at/v1/satellites/25544",
+        "options": {},
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "timestamps",
+              "value": "={{Date.now();}}"
+            }
+          ]
+        }
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        580,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "7f5c14d5-ad6f-4625-8fe5-3cc8a51a712d"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "number": [],
+          "string": [
+            {
+              "name": "Name",
+              "value": "={{$node[\"HTTP Request\"]['data']['name']}}"
+            },
+            {
+              "name": "Latitude",
+              "value": "={{$node[\"HTTP Request\"]['json']['latitude']}}"
+            },
+            {
+              "name": "Longitude",
+              "value": "={{$node[\"HTTP Request\"]['json']['longitude']}}"
+            },
+            {
+              "name": "Timestamp",
+              "value": "={{$node[\"HTTP Request\"]['json']['timestamp']}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        780,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "e7fa588e-0020-431b-96cc-e05a589eca17"
+    },
+    {
+      "parameters": {
+        "topic": "iss-position",
+        "options": {}
+      },
+      "name": "Kafka",
+      "type": "n8n-nodes-base.kafka",
+      "position": [
+        980,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "629eb4ee-ecdc-46be-aeb1-e8669e7ae1be",
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Set": [
+      {
+        "json": {
+          "Name": "iss",
+          "Latitude": 47.249062089772,
+          "Longitude": -64.524633551785,
+          "Timestamp": 1704358722
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-04T10:17:22.000Z",
+  "versionId": "28879b01-2300-475e-9727-cd7aec0c3804"
+}
