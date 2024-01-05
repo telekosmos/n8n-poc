@@ -297,7 +297,13 @@
         920,
         780
       ],
-      "typeVersion": 1
+      "typeVersion": 1,
+      "credentials": {
+        "githubApi": {
+          "id": "PgfF60kX2JyuV1qd",
+          "name": "GitHub account"
+        }
+      }
     },
     {
       "parameters": {
@@ -315,7 +321,13 @@
         920,
         960
       ],
-      "typeVersion": 1
+      "typeVersion": 1,
+      "credentials": {
+        "githubApi": {
+          "id": "PgfF60kX2JyuV1qd",
+          "name": "GitHub account"
+        }
+      }
     },
     {
       "parameters": {
@@ -477,6 +489,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2024-01-05T10:45:04.000Z",
-  "versionId": "10830410-0027-40d0-90d4-2bfb68880fe1"
+  "updatedAt": "2024-01-05T10:56:18.000Z",
+  "versionId": "b43e4580-a9c1-414c-8aed-4cf272b70dea"
 }
