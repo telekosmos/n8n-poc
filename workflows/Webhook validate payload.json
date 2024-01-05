@@ -1,0 +1,134 @@
+{
+  "active": false,
+  "connections": {
+    "Extract Request Body": {
+      "main": [
+        [
+          {
+            "node": "JsonValidator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Request Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JsonValidator": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-04T11:27:37.227Z",
+  "id": "fyeiTRajyNEaZAav",
+  "meta": null,
+  "name": "Webhook validate payload",
+  "nodes": [
+    {
+      "parameters": {
+        "include": "selected",
+        "includeFields": "={{ Object.keys($json.body).map(prop => `body.${prop}`).join(',') }}",
+        "options": {}
+      },
+      "id": "fc3f8f16-051c-44ee-89eb-344424a599eb",
+      "name": "Extract Request Body",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1160,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "id": "7b80df10-72cd-4e61-b312-53db311ed9ee",
+      "name": "Respond to Webhook1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "20c66603-f982-4ae5-bde9-ed7807766d3d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        460
+      ],
+      "webhookId": "da781a97-92cb-40c4-95a5-f786d8b8fd30"
+    },
+    {
+      "parameters": {},
+      "id": "bd158bd5-97b9-475e-a284-ab9674952790",
+      "name": "JsonValidator",
+      "type": "CUSTOM.jsonValidator",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        460
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "da3bc443-6f14-4f5d-9762-cf6508200446",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        580
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-05T10:56:33.000Z",
+  "versionId": "a13418ad-226b-4095-afe5-ee2d753e4431"
+}
