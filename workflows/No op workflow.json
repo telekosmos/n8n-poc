@@ -1,0 +1,53 @@
+{
+  "active": false,
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-05T11:05:56.870Z",
+  "id": "rxZa6aaddMF5rr8i",
+  "meta": null,
+  "name": "No op workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6679cac3-1a02-438a-bf5a-73489fba3841",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        780,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c013b027-17fd-4a64-a9d6-a1864805eb32",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        320
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-05T11:05:56.870Z",
+  "versionId": "60171ca6-fa5c-4ca6-b859-a3817ce71bde"
+}
