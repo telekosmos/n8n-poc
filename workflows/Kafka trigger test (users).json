@@ -1,0 +1,158 @@
+{
+  "active": true,
+  "connections": {
+    "Transform users": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kafka Trigger users": {
+      "main": [
+        [
+          {
+            "node": "users to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "users to JSON": {
+      "main": [
+        [
+          {
+            "node": "Transform users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-09T16:17:09.781Z",
+  "id": "EqrdxCgAANODEpN3",
+  "meta": null,
+  "name": "Kafka trigger test (users)",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "={{ $json.topic+'_profile' }}",
+        "fields": "={{ Object.keys($json).map((f, i) => i === 0 ? null: f).filter(e => e != null).join(',') }}",
+        "options": {
+          "dateFields": "created_at,updated_at"
+        }
+      },
+      "id": "ae6eca75-e0a8-4a19-96ab-60c49085b2b5",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        580
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ Object.assign({ topic: $json.topic }, $json.payload) }}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "df700c0a-9b16-442b-acf5-92d286ee500c",
+      "name": "Transform users",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "topic": "users",
+        "groupId": "users-n8ntest",
+        "options": {
+          "allowAutoTopicCreation": true,
+          "fromBeginning": true
+        }
+      },
+      "id": "df6f8974-04de-49db-b958-2e6ec9aa66ff",
+      "name": "Kafka Trigger users",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        580
+      ],
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  topic: \"{{ $input.item.json.topic }}\",\n  payload: {{ JSON.parse($input.item.json.message) }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "ff5c99d3-f9a4-4184-8265-3c45715785c0",
+      "name": "users to JSON",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        580,
+        580
+      ]
+    }
+  ],
+  "pinData": {
+    "users to JSON": [
+      {
+        "json": {
+          "topic": "users",
+          "payload": {
+            "user_id": 286,
+            "username": "ysullivan",
+            "email": "thomas15@yahoo.com",
+            "name": "Jason Green",
+            "phone": "+1-701-360-9753",
+            "address": "9382 Taylor Court Suite 892\nCoreyland, MH 90152",
+            "ssn": "656-27-9053",
+            "created_at": 1704876966884,
+            "updated_at": 1704876966884
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-10T09:28:12.000Z",
+  "versionId": "8a817ae1-fb69-4643-9c7a-2e74a7dc4305"
+}
