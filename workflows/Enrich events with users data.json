@@ -1,0 +1,184 @@
+{
+  "active": false,
+  "connections": {
+    "Kafka Trigger": {
+      "main": [
+        [
+          {
+            "node": "Convert to object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to object": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Convert to mongo events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-12T11:35:38.327Z",
+  "id": "kPchwbUKkNm8X1xM",
+  "meta": null,
+  "name": "Enrich events with users data",
+  "nodes": [
+    {
+      "parameters": {
+        "topic": "user-behaviour",
+        "groupId": "userbehaviours-n8ntest-1",
+        "options": {
+          "allowAutoTopicCreation": true,
+          "fromBeginning": true
+        }
+      },
+      "id": "de91b329-9cf5-4ea8-926e-007c474edd23",
+      "name": "Kafka Trigger",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        420
+      ],
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"event\": {{ JSON.parse($json.message) }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "17160b70-92e6-4460-b3bc-7f876c2813ab",
+      "name": "Convert to object",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        700,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "collection": "users_profile",
+        "options": {},
+        "query": "={ \"user_id\": {{ $json.event.user_id }}}"
+      },
+      "id": "c31130d4-32cb-4aaa-8e8e-97ae6545577e",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {
+          "fuzzyCompare": false
+        }
+      },
+      "id": "de24d692-c524-47d1-91e3-ec17b01583b6",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1240,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ Object.assign($json.event, { \"email\": $json.email }, { \"username\": $json.username }) }}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "c5879c54-f05f-4608-b9b7-ebc1d84258af",
+      "name": "Convert to mongo events",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1460,
+        400
+      ]
+    }
+  ],
+  "pinData": {
+    "Kafka Trigger": [
+      {
+        "json": {
+          "message": "{\"user_id\": 175, \"item_id\": 675, \"behavior\": \"cart\", \"view_id\": null, \"group_name\": \"A\", \"occurred_at\": \"2024-01-12 12:37:19\"}",
+          "topic": "user-behaviour"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "MongoDB": [
+      {
+        "json": {}
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-12T15:04:50.000Z",
+  "versionId": "0fdea755-4ab1-4ef0-a555-5fea40c96f39"
+}
