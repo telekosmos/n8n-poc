@@ -1,0 +1,281 @@
+{
+  "active": false,
+  "connections": {
+    "Globals": {
+      "main": [
+        [
+          {
+            "node": "GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 12 hours": {
+      "main": [
+        [
+          {
+            "node": "Globals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On clicking 'execute'": {
+      "main": [
+        [
+          {
+            "node": "Globals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "n8n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-05T08:02:11.800Z",
+  "id": "bTs6MkG1R7IJJIPr",
+  "meta": null,
+  "name": "Restore Workflows From Github",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "32e6a85f-ad78-40d1-b714-53f1c0cc4b79",
+      "name": "On clicking 'execute'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        835,
+        335
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "repo.owner",
+              "value": "telekosmos"
+            },
+            {
+              "name": "repo.name",
+              "value": "n8n-test"
+            },
+            {
+              "name": "repo.path",
+              "value": "workflows/"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9ee7ff8b-1d1b-4d7a-a1a5-12e287f51d8d",
+      "name": "Globals",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1020,
+        460
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 12
+            }
+          ]
+        }
+      },
+      "id": "a71e0365-9b30-4363-8bce-598dd78218e6",
+      "name": "Every 12 hours",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        835,
+        595
+      ],
+      "typeVersion": 1,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Backups\nThis workflow will automatically backup your workflows to your Github account every 12 hours.\n\n### Setup\nOpen Globals and update the values below\n**repo.owner:** This is your Github username\n**repo.name:** This is the name of your repository\n**repo.path:** This is the folder to use within the repository, If it doesn't exist it will be created.\n\nIf your username was `n8n-io` and your repository was called `n8n-backups` and you wanted the workflows to go into a `workflows` folder you would set:\n\nrepo.owner - n8n-io\nrepo.name - n8n-backups\nrepo.path - workflows",
+        "height": 464.79920462713443,
+        "width": 389.78906250000017
+      },
+      "id": "25f6f483-194a-4cc2-b153-e0ad61e42b63",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        380,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "={{ $json.repo.owner }}",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "={{ $json.repo.name }}",
+          "mode": "name"
+        },
+        "filePath": "={{ $json.repo.path }}ISS position every minute to Kafka.json",
+        "asBinaryProperty": false,
+        "additionalParameters": {}
+      },
+      "id": "fe28798d-1b06-441f-9d0f-c559053e6809",
+      "name": "GitHub",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        460
+      ],
+      "credentials": {
+        "githubApi": {
+          "id": "jySkDdA4touLAnzz",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.download_url }}",
+        "options": {}
+      },
+      "id": "88660f21-de3b-4e05-9bd1-3b9a8c365a32",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1460,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"data\": {{ Object.assign(JSON.parse($json.data), { name: JSON.parse($json.data).name + ' bis' }) }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "876240cc-4159-486b-9412-abb73297b1a1",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "workflowObject": "{\"active\": false, \"connections\": {\"When clicking \\\"Execute Workflow\\\"\": {\"main\": [[{\"node\": \"No Operation, do nothing\", \"type\": \"main\", \"index\": 0}]]}}, \"createdAt\": \"2024-01-05T11:05:56.870Z\", \"id\": \"rxZa6aaddMF5rr8i\", \"meta\": null, \"name\": \"No op workflow\", \"nodes\": [{\"parameters\": {}, \"id\": \"6679cac3-1a02-438a-bf5a-73489fba3841\", \"name\": \"When clicking \\\"Execute Workflow\\\"\", \"type\": \"n8n-nodes-base.manualTrigger\", \"typeVersion\": 1, \"position\": [780,320]},{\"parameters\": {}, \"id\": \"c013b027-17fd-4a64-a9d6-a1864805eb32\", \"name\": \"No Operation, do nothing\", \"type\": \"n8n-nodes-base.noOp\", \"typeVersion\": 1, \"position\": [1000,320]}], \"pinData\": {}, \"settings\": {\"executionOrder\": \"v1\"}, \"staticData\": null, \"tags\": [], \"triggerCount\": 0, \"updatedAt\": \"2024-01-05T11:05:56.870Z\", \"versionId\": \"60171ca6-fa5c-4ca6-b859-a3817ce71bde\"}"
+      },
+      "id": "87aeceeb-9644-4a23-bf29-8858f2e25230",
+      "name": "n8n",
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        460
+      ],
+      "credentials": {
+        "n8nApi": {
+          "id": "HqciuFttqA6KUjBe",
+          "name": "n8n account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "GitHub": [
+      {
+        "json": {
+          "name": "ISS position every minute to Kafka.json",
+          "path": "workflows/ISS position every minute to Kafka.json",
+          "sha": "b1ce27cba3211be8e0f2687196fd080ea56f2da5",
+          "size": 3411,
+          "url": "https://api.github.com/repos/telekosmos/n8n-test/contents/workflows/ISS%20position%20every%20minute%20to%20Kafka.json?ref=main",
+          "html_url": "https://github.com/telekosmos/n8n-test/blob/main/workflows/ISS%20position%20every%20minute%20to%20Kafka.json",
+          "git_url": "https://api.github.com/repos/telekosmos/n8n-test/git/blobs/b1ce27cba3211be8e0f2687196fd080ea56f2da5",
+          "download_url": "https://raw.githubusercontent.com/telekosmos/n8n-test/main/workflows/ISS%20position%20every%20minute%20to%20Kafka.json",
+          "type": "file",
+          "content": "ewogICJhY3RpdmUiOiBmYWxzZSwKICAiY29ubmVjdGlvbnMiOiB7CiAgICAi\nU2V0IjogewogICAgICAibWFpbiI6IFsKICAgICAgICBbCiAgICAgICAgICB7\nCiAgICAgICAgICAgICJub2RlIjogIkthZmthIiwKICAgICAgICAgICAgInR5\ncGUiOiAibWFpbiIsCiAgICAgICAgICAgICJpbmRleCI6IDAKICAgICAgICAg\nIH0KICAgICAgICBdCiAgICAgIF0KICAgIH0sCiAgICAiQ3JvbiI6IHsKICAg\nICAgIm1haW4iOiBbCiAgICAgICAgWwogICAgICAgICAgewogICAgICAgICAg\nICAibm9kZSI6ICJIVFRQIFJlcXVlc3QiLAogICAgICAgICAgICAidHlwZSI6\nICJtYWluIiwKICAgICAgICAgICAgImluZGV4IjogMAogICAgICAgICAgfQog\nICAgICAgIF0KICAgICAgXQogICAgfSwKICAgICJIVFRQIFJlcXVlc3QiOiB7\nCiAgICAgICJtYWluIjogWwogICAgICAgIFsKICAgICAgICAgIHsKICAgICAg\nICAgICAgIm5vZGUiOiAiU2V0IiwKICAgICAgICAgICAgInR5cGUiOiAibWFp\nbiIsCiAgICAgICAgICAgICJpbmRleCI6IDAKICAgICAgICAgIH0KICAgICAg\nICBdCiAgICAgIF0KICAgIH0KICB9LAogICJjcmVhdGVkQXQiOiAiMjAyNC0w\nMS0wNFQwODo1NTo1MS41MzNaIiwKICAiaWQiOiAiTVFBVkh3TEp4a3lDZ1FT\ndyIsCiAgIm1ldGEiOiBudWxsLAogICJuYW1lIjogIklTUyBwb3NpdGlvbiBl\ndmVyeSBtaW51dGUgdG8gS2Fma2EiLAogICJub2RlcyI6IFsKICAgIHsKICAg\nICAgInBhcmFtZXRlcnMiOiB7CiAgICAgICAgInRyaWdnZXJUaW1lcyI6IHsK\nICAgICAgICAgICJpdGVtIjogWwogICAgICAgICAgICB7CiAgICAgICAgICAg\nICAgIm1vZGUiOiAiZXZlcnlNaW51dGUiCiAgICAgICAgICAgIH0KICAgICAg\nICAgIF0KICAgICAgICB9CiAgICAgIH0sCiAgICAgICJuYW1lIjogIkNyb24i\nLAogICAgICAidHlwZSI6ICJuOG4tbm9kZXMtYmFzZS5jcm9uIiwKICAgICAg\nInBvc2l0aW9uIjogWwogICAgICAgIDM4MCwKICAgICAgICAyNDAKICAgICAg\nXSwKICAgICAgInR5cGVWZXJzaW9uIjogMSwKICAgICAgImlkIjogImMwZGZh\nYjJlLWRiMmQtNDhlMi1hZDYwLWUzNGNjYzljOGRlNCIKICAgIH0sCiAgICB7\nCiAgICAgICJwYXJhbWV0ZXJzIjogewogICAgICAgICJ1cmwiOiAiaHR0cHM6\nLy9hcGkud2hlcmV0aGVpc3MuYXQvdjEvc2F0ZWxsaXRlcy8yNTU0NCIsCiAg\nICAgICAgIm9wdGlvbnMiOiB7fSwKICAgICAgICAicXVlcnlQYXJhbWV0ZXJz\nVWkiOiB7CiAgICAgICAgICAicGFyYW1ldGVyIjogWwogICAgICAgICAgICB7\nCiAgICAgICAgICAgICAgIm5hbWUiOiAidGltZXN0YW1wcyIsCiAgICAgICAg\nICAgICAgInZhbHVlIjogIj17e0RhdGUubm93KCk7fX0iCiAgICAgICAgICAg\nIH0KICAgICAgICAgIF0KICAgICAgICB9CiAgICAgIH0sCiAgICAgICJuYW1l\nIjogIkhUVFAgUmVxdWVzdCIsCiAgICAgICJ0eXBlIjogIm44bi1ub2Rlcy1i\nYXNlLmh0dHBSZXF1ZXN0IiwKICAgICAgInBvc2l0aW9uIjogWwogICAgICAg\nIDU4MCwKICAgICAgICAyNDAKICAgICAgXSwKICAgICAgInR5cGVWZXJzaW9u\nIjogMSwKICAgICAgImlkIjogIjdmNWMxNGQ1LWFkNmYtNDYyNS04ZmU1LTNj\nYzhhNTFhNzEyZCIKICAgIH0sCiAgICB7CiAgICAgICJwYXJhbWV0ZXJzIjog\newogICAgICAgICJrZWVwT25seVNldCI6IHRydWUsCiAgICAgICAgInZhbHVl\ncyI6IHsKICAgICAgICAgICJudW1iZXIiOiBbXSwKICAgICAgICAgICJzdHJp\nbmciOiBbCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAibmFtZSI6ICJO\nYW1lIiwKICAgICAgICAgICAgICAidmFsdWUiOiAiPXt7JG5vZGVbXCJIVFRQ\nIFJlcXVlc3RcIl1bJ2RhdGEnXVsnbmFtZSddfX0iCiAgICAgICAgICAgIH0s\nCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAibmFtZSI6ICJMYXRpdHVk\nZSIsCiAgICAgICAgICAgICAgInZhbHVlIjogIj17eyRub2RlW1wiSFRUUCBS\nZXF1ZXN0XCJdWydqc29uJ11bJ2xhdGl0dWRlJ119fSIKICAgICAgICAgICAg\nfSwKICAgICAgICAgICAgewogICAgICAgICAgICAgICJuYW1lIjogIkxvbmdp\ndHVkZSIsCiAgICAgICAgICAgICAgInZhbHVlIjogIj17eyRub2RlW1wiSFRU\nUCBSZXF1ZXN0XCJdWydqc29uJ11bJ2xvbmdpdHVkZSddfX0iCiAgICAgICAg\nICAgIH0sCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAibmFtZSI6ICJU\naW1lc3RhbXAiLAogICAgICAgICAgICAgICJ2YWx1ZSI6ICI9e3skbm9kZVtc\nIkhUVFAgUmVxdWVzdFwiXVsnanNvbiddWyd0aW1lc3RhbXAnXX19IgogICAg\nICAgICAgICB9CiAgICAgICAgICBdCiAgICAgICAgfSwKICAgICAgICAib3B0\naW9ucyI6IHt9CiAgICAgIH0sCiAgICAgICJuYW1lIjogIlNldCIsCiAgICAg\nICJ0eXBlIjogIm44bi1ub2Rlcy1iYXNlLnNldCIsCiAgICAgICJwb3NpdGlv\nbiI6IFsKICAgICAgICA3ODAsCiAgICAgICAgMjQwCiAgICAgIF0sCiAgICAg\nICJ0eXBlVmVyc2lvbiI6IDEsCiAgICAgICJpZCI6ICJlN2ZhNTg4ZS0wMDIw\nLTQzMWItOTZjYy1lMDVhNTg5ZWNhMTciCiAgICB9LAogICAgewogICAgICAi\ncGFyYW1ldGVycyI6IHsKICAgICAgICAidG9waWMiOiAiaXNzLXBvc2l0aW9u\nIiwKICAgICAgICAib3B0aW9ucyI6IHt9CiAgICAgIH0sCiAgICAgICJuYW1l\nIjogIkthZmthIiwKICAgICAgInR5cGUiOiAibjhuLW5vZGVzLWJhc2Uua2Fm\na2EiLAogICAgICAicG9zaXRpb24iOiBbCiAgICAgICAgOTgwLAogICAgICAg\nIDI0MAogICAgICBdLAogICAgICAidHlwZVZlcnNpb24iOiAxLAogICAgICAi\naWQiOiAiNjI5ZWI0ZWUtZWNkYy00NmJlLWFlYjEtZTg2NjllN2FlMWJlIiwK\nICAgICAgImNyZWRlbnRpYWxzIjogewogICAgICAgICJrYWZrYSI6IHsKICAg\nICAgICAgICJpZCI6ICJ1OFBiOE51M21uTkY5NmRRIiwKICAgICAgICAgICJu\nYW1lIjogIkthZmthIGFjY291bnQiCiAgICAgICAgfQogICAgICB9CiAgICB9\nCiAgXSwKICAicGluRGF0YSI6IHsKICAgICJTZXQiOiBbCiAgICAgIHsKICAg\nICAgICAianNvbiI6IHsKICAgICAgICAgICJOYW1lIjogImlzcyIsCiAgICAg\nICAgICAiTGF0aXR1ZGUiOiA0Ny4yNDkwNjIwODk3NzIsCiAgICAgICAgICAi\nTG9uZ2l0dWRlIjogLTY0LjUyNDYzMzU1MTc4NSwKICAgICAgICAgICJUaW1l\nc3RhbXAiOiAxNzA0MzU4NzIyCiAgICAgICAgfSwKICAgICAgICAicGFpcmVk\nSXRlbSI6IHsKICAgICAgICAgICJpdGVtIjogMAogICAgICAgIH0KICAgICAg\nfQogICAgXQogIH0sCiAgInNldHRpbmdzIjogewogICAgImV4ZWN1dGlvbk9y\nZGVyIjogInYxIgogIH0sCiAgInN0YXRpY0RhdGEiOiBudWxsLAogICJ0YWdz\nIjogW10sCiAgInRyaWdnZXJDb3VudCI6IDAsCiAgInVwZGF0ZWRBdCI6ICIy\nMDI0LTAxLTA0VDEwOjE3OjIyLjAwMFoiLAogICJ2ZXJzaW9uSWQiOiAiMjg4\nNzliMDEtMjMwMC00NzVlLTk3MjctY2Q3YWVjMGMzODA0Igp9\n",
+          "encoding": "base64",
+          "_links": {
+            "self": "https://api.github.com/repos/telekosmos/n8n-test/contents/workflows/ISS%20position%20every%20minute%20to%20Kafka.json?ref=main",
+            "git": "https://api.github.com/repos/telekosmos/n8n-test/git/blobs/b1ce27cba3211be8e0f2687196fd080ea56f2da5",
+            "html": "https://github.com/telekosmos/n8n-test/blob/main/workflows/ISS%20position%20every%20minute%20to%20Kafka.json"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "HTTP Request": [
+      {
+        "json": {
+          "data": "{\n  \"active\": false,\n  \"connections\": {\n    \"Set\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Kafka\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Cron\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"HTTP Request\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"HTTP Request\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Set\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  },\n  \"createdAt\": \"2024-01-04T08:55:51.533Z\",\n  \"id\": \"MQAVHwLJxkyCgQSw\",\n  \"meta\": null,\n  \"name\": \"ISS position every minute to Kafka\",\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"triggerTimes\": {\n          \"item\": [\n            {\n              \"mode\": \"everyMinute\"\n            }\n          ]\n        }\n      },\n      \"name\": \"Cron\",\n      \"type\": \"n8n-nodes-base.cron\",\n      \"position\": [\n        380,\n        240\n      ],\n      \"typeVersion\": 1,\n      \"id\": \"c0dfab2e-db2d-48e2-ad60-e34ccc9c8de4\"\n    },\n    {\n      \"parameters\": {\n        \"url\": \"https://api.wheretheiss.at/v1/satellites/25544\",\n        \"options\": {},\n        \"queryParametersUi\": {\n          \"parameter\": [\n            {\n              \"name\": \"timestamps\",\n              \"value\": \"={{Date.now();}}\"\n            }\n          ]\n        }\n      },\n      \"name\": \"HTTP Request\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"position\": [\n        580,\n        240\n      ],\n      \"typeVersion\": 1,\n      \"id\": \"7f5c14d5-ad6f-4625-8fe5-3cc8a51a712d\"\n    },\n    {\n      \"parameters\": {\n        \"keepOnlySet\": true,\n        \"values\": {\n          \"number\": [],\n          \"string\": [\n            {\n              \"name\": \"Name\",\n              \"value\": \"={{$node[\\\"HTTP Request\\\"]['data']['name']}}\"\n            },\n            {\n              \"name\": \"Latitude\",\n              \"value\": \"={{$node[\\\"HTTP Request\\\"]['json']['latitude']}}\"\n            },\n            {\n              \"name\": \"Longitude\",\n              \"value\": \"={{$node[\\\"HTTP Request\\\"]['json']['longitude']}}\"\n            },\n            {\n              \"name\": \"Timestamp\",\n              \"value\": \"={{$node[\\\"HTTP Request\\\"]['json']['timestamp']}}\"\n            }\n          ]\n        },\n        \"options\": {}\n      },\n      \"name\": \"Set\",\n      \"type\": \"n8n-nodes-base.set\",\n      \"position\": [\n        780,\n        240\n      ],\n      \"typeVersion\": 1,\n      \"id\": \"e7fa588e-0020-431b-96cc-e05a589eca17\"\n    },\n    {\n      \"parameters\": {\n        \"topic\": \"iss-position\",\n        \"options\": {}\n      },\n      \"name\": \"Kafka\",\n      \"type\": \"n8n-nodes-base.kafka\",\n      \"position\": [\n        980,\n        240\n      ],\n      \"typeVersion\": 1,\n      \"id\": \"629eb4ee-ecdc-46be-aeb1-e8669e7ae1be\",\n      \"credentials\": {\n        \"kafka\": {\n          \"id\": \"u8Pb8Nu3mnNF96dQ\",\n          \"name\": \"Kafka account\"\n        }\n      }\n    }\n  ],\n  \"pinData\": {\n    \"Set\": [\n      {\n        \"json\": {\n          \"Name\": \"iss\",\n          \"Latitude\": 47.249062089772,\n          \"Longitude\": -64.524633551785,\n          \"Timestamp\": 1704358722\n        },\n        \"pairedItem\": {\n          \"item\": 0\n        }\n      }\n    ]\n  },\n  \"settings\": {\n    \"executionOrder\": \"v1\"\n  },\n  \"staticData\": null,\n  \"tags\": [],\n  \"triggerCount\": 0,\n  \"updatedAt\": \"2024-01-04T10:17:22.000Z\",\n  \"versionId\": \"28879b01-2300-475e-9727-cd7aec0c3804\"\n}"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-05T11:08:52.000Z",
+  "versionId": "5816be44-50a4-4633-be45-8213c058ef0a"
+}
