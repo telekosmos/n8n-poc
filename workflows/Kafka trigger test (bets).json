@@ -1,18 +1,7 @@
 {
   "active": true,
   "connections": {
-    "Kafka Trigger": {
-      "main": [
-        [
-          {
-            "node": "Convert to JSON object",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Transform": {
+    "Transform user bets": {
       "main": [
         [
           {
@@ -23,11 +12,22 @@
         ]
       ]
     },
-    "Convert to JSON object": {
+    "Kafka Trigger user bets": {
       "main": [
         [
           {
-            "node": "Transform",
+            "node": "user-bets to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "user-bets to JSON": {
+      "main": [
+        [
+          {
+            "node": "Transform user bets",
             "type": "main",
             "index": 0
           }
@@ -42,41 +42,19 @@
   "nodes": [
     {
       "parameters": {
-        "topic": "user-bets",
-        "groupId": "userbets-n8ntest1",
-        "options": {
-          "allowAutoTopicCreation": true,
-          "fromBeginning": true
-        }
-      },
-      "id": "857da7e3-8a8b-4b2f-be64-8a62be491bc6",
-      "name": "Kafka Trigger",
-      "type": "n8n-nodes-base.kafkaTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        360,
-        420
-      ],
-      "credentials": {
-        "kafka": {
-          "id": "u8Pb8Nu3mnNF96dQ",
-          "name": "Kafka account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "operation": "insert",
         "collection": "={{ $json.topic }}",
         "fields": "={{ Object.keys($json).map((f, i) => i === 0 ? null: f).filter(e => e != null).join(',') }}",
-        "options": {}
+        "options": {
+          "dateFields": "timestamp,created_at,updated_at"
+        }
       },
       "id": "41530c0c-8a6a-48f6-a496-d9b76f8d0cad",
       "name": "MongoDB",
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1,
       "position": [
-        1000,
+        1220,
         420
       ],
       "credentials": {
@@ -89,18 +67,42 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  topic: \"{{ $json.topic }}\",\n  timestamp: {{ $json.payload.timestap }},\n  username: \"{{ $json.payload.username }}\",\n  betCategory: \"{{ $json.payload.event.category }}\",\n  eventName: \"{{ $json.payload.event.name }}\"\n}",
+        "jsonOutput": "={\n  topic: \"{{ $json.topic }}\",\n  timestamp: {{ $json.payload.timestap }},\n  created_at: {{ $json.payload.timestap }},\n  updated_at: {{ $json.payload.timestap }},\n  username: \"{{ $json.payload.username }}\",\n  betCategory: \"{{ $json.payload.event.category }}\",\n  eventName: \"{{ $json.payload.event.name }}\"\n}",
         "include": "none",
         "options": {}
       },
       "id": "821e41ec-a5f4-4f69-ab41-59f78805d7df",
-      "name": "Transform",
+      "name": "Transform user bets",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.2,
       "position": [
-        780,
+        920,
         420
       ]
+    },
+    {
+      "parameters": {
+        "topic": "user-bets",
+        "groupId": "userbets-n8ntest1",
+        "options": {
+          "allowAutoTopicCreation": true,
+          "fromBeginning": true
+        }
+      },
+      "id": "857da7e3-8a8b-4b2f-be64-8a62be491bc6",
+      "name": "Kafka Trigger user bets",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        280,
+        420
+      ],
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
     },
     {
       "parameters": {
@@ -110,16 +112,28 @@
         "options": {}
       },
       "id": "01a1739b-2209-47ad-b609-1b1d4698ce6e",
-      "name": "Convert to JSON object",
+      "name": "user-bets to JSON",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.2,
       "position": [
-        580,
+        600,
         420
       ]
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Kafka Trigger user bets": [
+      {
+        "json": {
+          "message": "{\"username\": \"losingmoney66\", \"event\": {\"category\": \"Event\", \"subcategory\": \"Politics\", \"name\": \"Mickey Mouse new Italian President\"}, \"amount\": 7, \"timestap\": 1704872561081}",
+          "topic": "user-bets"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "settings": {
     "executionOrder": "v1",
     "saveDataSuccessExecution": "none",
@@ -129,6 +143,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2024-01-04T15:43:15.000Z",
-  "versionId": "abc43717-880d-4ee8-b282-bdc12d88b86d"
+  "updatedAt": "2024-01-10T07:42:56.000Z",
+  "versionId": "3740cd35-e206-4e73-b761-9b530eef70c5"
 }
