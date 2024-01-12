@@ -69,7 +69,9 @@
         "operation": "insert",
         "collection": "={{ $json.topic }}",
         "fields": "={{ Object.keys($json).map((f, i) => i === 0 ? null: f).filter(e => e != null).join(',') }}",
-        "options": {}
+        "options": {
+          "dateFields": "created_at,updated_at"
+        }
       },
       "id": "ee8b5284-b2f6-4c25-845b-7897787d5783",
       "name": "MongoDB",
@@ -89,7 +91,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  topic: \"{{ $json.topic }}\",\n  orderId: \"{{ new Date($json.payload.timestamp).getTime() }}-{{ $json.payload.id }}\",\n    customer: \"{{ $json.payload.name }}\",\n    phone: \"{{ $json.payload.phoneNumber }}\",\n    amount: {{ $json[\"payload\"][\"pizzas\"].length }},\n    totalTopings: {{ $json[\"payload\"][\"pizzas\"].flatMap(p => p.additionalToppings).length }},\n    totalPizzas: {{ $json.payload.pizzas.length }},\n    pizzas: {{ $json.payload.pizzas.map(p => p.pizzaName) }},\n}",
+        "jsonOutput": "={\n  topic: \"{{ $json.topic }}\",\n  created_at: {{ $json.payload.timestamp }},\n  updated_at: {{ $json.payload.timestamp }},\n  orderId: \"{{ new Date($json.payload.timestamp).getTime() }}-{{ $json.payload.id }}\",\n    customer: \"{{ $json.payload.name }}\",\n    phone: \"{{ $json.payload.phoneNumber }}\",\n    amount: {{ $json[\"payload\"][\"pizzas\"].length }},\n    totalTopings: {{ $json[\"payload\"][\"pizzas\"].flatMap(p => p.additionalToppings).length }},\n    totalPizzas: {{ $json.payload.pizzas.length }},\n    pizzas: {{ $json.payload.pizzas.map(p => p.pizzaName) }},\n}",
         "include": "none",
         "options": {}
       },
@@ -129,6 +131,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2024-01-04T15:43:53.000Z",
-  "versionId": "c0f87909-3b77-446f-832a-fdc5c717e59a"
+  "updatedAt": "2024-01-05T14:00:17.000Z",
+  "versionId": "bc0baeae-b62f-4afc-94ea-837c752a8508"
 }
