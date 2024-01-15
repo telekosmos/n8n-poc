@@ -1,5 +1,5 @@
 {
-  "active": false,
+  "active": true,
   "connections": {
     "Kafka Trigger": {
       "main": [
@@ -54,7 +54,7 @@
     {
       "parameters": {
         "topic": "user-behaviour",
-        "groupId": "userbehaviours-n8ntest-1",
+        "groupId": "userbehaviours-v1-save",
         "options": {
           "allowAutoTopicCreation": true,
           "fromBeginning": true
@@ -176,6 +176,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2024-01-12T11:36:54.000Z",
-  "versionId": "402af6c8-9169-4898-adf7-df775c34c5d2"
+  "updatedAt": "2024-01-15T15:36:21.000Z",
+  "versionId": "8baf5686-51cc-4fba-8676-1b94a7c08d2c"
 }
