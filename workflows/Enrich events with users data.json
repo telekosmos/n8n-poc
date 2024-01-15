@@ -1,5 +1,5 @@
 {
-  "active": false,
+  "active": true,
   "connections": {
     "Kafka Trigger": {
       "main": [
@@ -21,7 +21,7 @@
             "index": 0
           },
           {
-            "node": "Merge",
+            "node": "Enrich incoming event",
             "type": "main",
             "index": 1
           }
@@ -32,18 +32,103 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Enrich incoming event",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge": {
+    "Convert to mongo events": {
+      "main": [
+        [
+          {
+            "node": "Insert event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get incomplete events",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enrich incomplete events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get incomplete events": {
+      "main": [
+        [
+          {
+            "node": "did got incomplete events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich incomplete events": {
+      "main": [
+        [
+          {
+            "node": "Update enriched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich incoming event": {
       "main": [
         [
           {
             "node": "Convert to mongo events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert event": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "did got incomplete events": {
+      "main": [
+        [
+          {
+            "node": "Enrich incomplete events",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
             "type": "main",
             "index": 0
           }
@@ -59,7 +144,7 @@
     {
       "parameters": {
         "topic": "user-behaviour",
-        "groupId": "userbehaviours-n8ntest-1",
+        "groupId": "userbehaviours-v1-enrich",
         "options": {
           "allowAutoTopicCreation": true,
           "fromBeginning": true
@@ -107,7 +192,7 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1,
       "position": [
-        1000,
+        980,
         300
       ],
       "alwaysOutputData": true,
@@ -117,23 +202,6 @@
           "name": "MongoDB account"
         }
       }
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
-        "options": {
-          "fuzzyCompare": false
-        }
-      },
-      "id": "de24d692-c524-47d1-91e3-ec17b01583b6",
-      "name": "Merge",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2.1,
-      "position": [
-        1240,
-        400
-      ]
     },
     {
       "parameters": {
@@ -150,26 +218,223 @@
         1460,
         400
       ]
-    }
-  ],
-  "pinData": {
-    "Kafka Trigger": [
-      {
-        "json": {
-          "message": "{\"user_id\": 175, \"item_id\": 675, \"behavior\": \"cart\", \"view_id\": null, \"group_name\": \"A\", \"occurred_at\": \"2024-01-12 12:37:19\"}",
-          "topic": "user-behaviour"
-        },
-        "pairedItem": {
-          "item": 0
+    },
+    {
+      "parameters": {
+        "content": "## Multiple updates\nGet an event with `user_id`. This `user_id` could or couldn't be in mongo. \n\nTL;DR\n- run this one, produce crap\n- run `usersproducer.py` produce more users\n- re-run this one -> update all the previous events (`updateMany`) with user data missing\n\n\nSo the point is if the user is not in mongo, expect for it and, when coming enrich the payload and `updateMany` events. To do this stupid and misleading use case:\n- save the events in a collection, enriched or not\n- later update the users running the `usersproducer.py`\n- then run again this workflow updating all the previous events with data from user",
+        "height": 451.44856543037054,
+        "width": 342.11336599020314
+      },
+      "id": "acaa9bbe-45bf-4377-bd5e-9c25e71be2de",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "events-behaviour",
+        "fields": "={{ Object.keys($json).join(',') }}",
+        "options": {}
+      },
+      "id": "125c211e-ab3b-4e3d-9e27-e85d06809223",
+      "name": "Insert event",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        400
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
         }
       }
-    ],
-    "MongoDB": [
-      {
-        "json": {}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.username }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "4426fccf-99b0-474d-9828-becfbf2126d8",
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        400
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "1d6b1f63-d061-44c1-925b-8ff0c4b1b0a3",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "collection": "events-behaviour",
+        "options": {},
+        "query": "={ \"user_id\": {{ $json.user_id }}, \"username\": { \"$exists\": false } }"
+      },
+      "id": "f659379d-5fcb-4057-8e31-96567d141198",
+      "name": "Get incomplete events",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        540
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
       }
-    ]
-  },
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "events-behaviour",
+        "updateKey": "user_id",
+        "fields": "email,username",
+        "options": {}
+      },
+      "id": "75226d3c-38a2-467d-9a4b-55aa7e23ee8f",
+      "name": "Update enriched",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        440
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "W7MW3LiRq7EGXUoI",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "user_id",
+              "field2": "user_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "39861719-a7a5-437f-9547-11140cae3808",
+      "name": "Enrich incomplete events",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        2520,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {
+          "fuzzyCompare": false
+        }
+      },
+      "id": "de24d692-c524-47d1-91e3-ec17b01583b6",
+      "name": "Enrich incoming event",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1240,
+        400
+      ],
+      "notes": "\n"
+    },
+    {
+      "parameters": {
+        "content": "### Save incoming event \n\nAlways save incoming event",
+        "height": 124.40112236224306,
+        "width": 229.04649918838254
+      },
+      "id": "eff5258e-2afb-4ff0-9b89-a9a0e831a0c4",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Check event content\n\nif enriched has username update all incomplete events",
+        "height": 117.55518435498203,
+        "width": 227.67731158693033
+      },
+      "id": "e50bb85e-1c90-49dc-83e3-302703aab226",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $input.item.json }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "c989a442-9897-4416-8f35-9d80fc3c5f3c",
+      "name": "did got incomplete events",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2320,
+        720
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "85d9b420-d9bc-4e5f-831a-349ba1f21fed",
+      "name": "No Operation, do nothing1",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2580,
+        740
+      ]
+    }
+  ],
+  "pinData": {},
   "settings": {
     "executionOrder": "v1",
     "saveDataSuccessExecution": "none",
@@ -179,6 +444,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2024-01-12T15:04:50.000Z",
-  "versionId": "0fdea755-4ab1-4ef0-a555-5fea40c96f39"
+  "updatedAt": "2024-01-15T16:08:41.000Z",
+  "versionId": "238efd19-8da7-46fa-807b-ee8ca2489e76"
 }
