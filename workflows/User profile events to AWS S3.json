@@ -1,0 +1,177 @@
+{
+  "active": true,
+  "connections": {
+    "Kafka Trigger": {
+      "main": [
+        [
+          {
+            "node": "Convert to object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to object": {
+      "main": [
+        [
+          {
+            "node": "Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform": {
+      "main": [
+        [
+          {
+            "node": "S3Constants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3Constants": {
+      "main": [
+        [
+          {
+            "node": "AWS S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-16T12:01:13.561Z",
+  "id": "45M62Tad4GWx4XOO",
+  "meta": null,
+  "name": "User profile events to AWS S3",
+  "nodes": [
+    {
+      "parameters": {
+        "topic": "users",
+        "groupId": "users-v1-save",
+        "options": {
+          "allowAutoTopicCreation": true,
+          "fromBeginning": true
+        }
+      },
+      "id": "0a3df299-2f48-42c6-8654-60f034bbc9cb",
+      "name": "Kafka Trigger",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        420
+      ],
+      "credentials": {
+        "kafka": {
+          "id": "u8Pb8Nu3mnNF96dQ",
+          "name": "Kafka account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"folder\": \"{{ $json.topic }}\",\n  \"payload\": {{ JSON.parse($json.message) }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "334f23c2-7c5b-49bf-88d8-aa35c5dfae47",
+      "name": "Convert to object",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        700,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"rootFolder\": \"{{ $json.folder }}\",\n  \"leafFolder\": \"{{ new Date($json.payload.updated_at).getFullYear() }}/{{ (new Date($json.payload.updated_at).getMonth()+1).toString().padStart(2, 0) }}/{{ new Date($json.payload.updated_at).getDate().toString().padStart(2, 0) }}/{{ new Date($json.payload.updated_at).getHours().toString().padStart(2, 0) }}/{{ new Date($json.payload.updated_at).getMinutes().toString().padStart(2, 0) }}\",\n  \"content\": {{ $json.payload }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "74f45a92-8387-4fc1-9db1-9f2ff6fa21b0",
+      "name": "Transform",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "=rootFolder",
+              "stringValue": "={{ $json.rootFolder }}"
+            },
+            {
+              "name": "folder",
+              "stringValue": "={{ $json.leafFolder }}"
+            },
+            {
+              "name": "filename",
+              "stringValue": "={{ $json.leafFolder.split('/').join('')+'_'+new Date($json.content.updated_at).getTime()+'_'+$json.content.user_id+'_'+$json.content.item_id }}.json"
+            }
+          ]
+        },
+        "include": "none",
+        "options": {}
+      },
+      "id": "7846ba49-f7e4-42b8-9afc-ad65b5c4a9e2",
+      "name": "S3Constants",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "poc-n8n-telekosmos",
+        "fileName": "={{ $json.rootFolder }}/{{ $json.folder }}/{{ $json.filename }}",
+        "binaryData": false,
+        "fileContent": "={{ JSON.stringify($('Transform').item.json.content) }}",
+        "additionalFields": {}
+      },
+      "id": "613a8ab8-921a-4fd7-a2a1-d165f63a51a9",
+      "name": "AWS S3",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        420
+      ],
+      "credentials": {
+        "aws": {
+          "id": "hJatCAG1JJ5YfTZI",
+          "name": "AWS S3 telekosmos"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-16T12:08:54.000Z",
+  "versionId": "4e32f627-df48-4151-8c9b-c7bdf649be15"
+}
