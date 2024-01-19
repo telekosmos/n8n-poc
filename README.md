@@ -6,3 +6,5 @@ In order this to work you have to create a `.env` file to be in the same folder 
 
 Also, by mapping the volume `./init-n8n-pg.sh:/docker-entrypoint-initdb.d/init-n8n-pg.sh` we get the script run on container startup (just by virtue of being placed at `/docker-entrypoint-initdb.d` folder) and our user to use with _n8n_ is created.
 
+## Remote backend using a PgAAS
+Instead using the backend database as a service in the docker compose, we can decouple it by using a remote database. In this case, the configuration is the same but an example ([docker-compose-neon.yml](./docker-compose-neon.yml)) is provided to use [neon.tech](https://neon.tech). There can be issues on how to connect, as you might need a certificate instead to use the user/password combination. Refer to each backend documentation and **n8n** reference in any case.
