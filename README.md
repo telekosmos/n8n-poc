@@ -1,6 +1,6 @@
 # n8n with PostgreSQL backend
 
-## Using `docker-compose`
+## Deployment to `docker-compose`
 > This taken from [here](https://github.com/n8n-io/n8n/tree/master/docker/compose/withPostgres) and patched for PostgreSQL 15+.
 
 In order this to work you have to create a **`.env`** file to be in the same folder as the docker compose descriptor file. **Be aware this file will be available to docker containers when `docker-compose up` is run**. ([More on this](https://docs.docker.com/compose/environment-variables/set-environment-variables/)). In this file there has to be at least assigned variables:
@@ -21,3 +21,18 @@ So, instead using the backend database as a docker compose service, we can decou
 
 Also mind the named of the environment variables in ([docker-compose-neon.yml](./docker-compose-neon.yml)) are prefixed as `NEON_` but their meaning is the same as pointed above. It is recommendable to add a new environment variable `[NEON_DB_]POSTGRESDB_HOST` pointing to the URL host (also used in the compose file linked previously).
 
+## Deployment to kubernetes
+
+### In-cluster PostgreSQL backend
+
+To do this from the scratch we need a Postgres database in the cluster. We'll use a halm chart as there are plenty of options for postgres. We'll choose a simple one for this POC by installing the chart build by the cetic org, which can be found in [artifacthub](https://artifacthub.io/packages/helm/cetic/postgresql). Just follow the instructions to install.
+
+Default values in `values.yml` are moslty fine for our purposes here. Database root user and password can be customized.
+
+No point in define the name to use a exported port as the _service_ template is hardcoded to use a service type `ClusterIP`. Read the documentation after the installation to forward the port from the host to the container pod and connect to the database server with the postgres client of choice.
+
+### n8n single instance
+
+We chosen [this excellent char](https://artifacthub.io/packages/helm/open-8gears/n8n) in order to deploy the application in a minikube _cluster_ with default values but for the postgres parameters. They have to be those parameters we chosen for our backend. In the case of using the previously deployed Postgres backend, the IP of the postgres service has to be set.
+
+As in the case of the postgresql deployment, we need to forward the port from the host to the container port in order to get host connectivity to the n8n instance.
