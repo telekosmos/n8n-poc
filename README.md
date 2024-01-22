@@ -29,10 +29,16 @@ To do this from the scratch we need a Postgres database in the cluster. We'll us
 
 Default values in `values.yml` are moslty fine for our purposes here. Database root user and password can be customized.
 
-No point in define the name to use a exported port as the _service_ template is hardcoded to use a service type `ClusterIP`. Read the documentation after the installation to forward the port from the host to the container pod and connect to the database server with the postgres client of choice.
+From the project root:
+`helm install postgresn8n cetic/postgresql -f chart/pg-values.yaml`
+
+No point in define the name to use a exported port as the _service_ template is hardcoded to use a service type `ClusterIP`. Read the documentation just after the installation to forward the port from the host to the container pod and connect to the database server with the postgres client of choice.
 
 ### n8n single instance
 
 We chosen [this excellent char](https://artifacthub.io/packages/helm/open-8gears/n8n) in order to deploy the application in a minikube _cluster_ with default values but for the postgres parameters. They have to be those parameters we chosen for our backend. In the case of using the previously deployed Postgres backend, the IP of the postgres service has to be set.
 
-As in the case of the postgresql deployment, we need to forward the port from the host to the container port in order to get host connectivity to the n8n instance.
+From the project root:
+`helm install n8n-poc oci://8gears.container-registry.com/library/n8n --version 0.20.1 -f chart/n8n-values.yaml`
+
+As in the case of the postgresql deployment, we need to forward the port from the host to the container port in order to get host connectivity to the n8n instance. That is documented similarly to the postgres deployment just after the installation.
