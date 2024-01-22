@@ -1,0 +1,92 @@
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - POSTGRES_NON_ROOT_USER
+      - POSTGRES_NON_ROOT_PASSWORD
+    volumes:
+      - ./pg/data:/var/lib/postgresql/data
+      - ./init-n8n-pg.sh:/docker-entrypoint-initdb.d/init-n8n-pg.sh
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  sftp:
+    image: atmoz/sftp
+    ports:
+      - 2222:22
+    volumes:
+      - /Users/telekosmos/workon/n8n/ftp:/home/n8n/upload
+    command: n8n:pass:1001
+
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - /Users/telekosmos/working/n8n/mongo:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: passwd
+
+  n8n:
+    image: n8nio/n8n
+    ports:
+      - 5678:5678
+    volumes:
+      - /Users/telekosmos/.n8n:/home/node/.n8n
+      - /Users/telekosmos/workon/n8n/ftp:/home/node/testdata
+      - ./pg/data:/home/node/.n8n/data
+    links:
+      - postgres
+    environment:
+      - N8N_LOG_LEVEL=debug
+      # metrics
+      - N8N_METRICS=true
+      # healthz
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
+      # remote pg config
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # command: ["start", "--tunnel"]
+    command: ["start"]
+
