@@ -1,0 +1,15 @@
+# values.yaml
+
+config:
+  database:
+    type: postgresdb
+    postgresdb:
+      database: n8ndb
+      host: <clusterIP-of-pg-service>
+      user: n8n
+      password: '<password-for-n8n-user>'
+
+secret:
+  database:
+    postgresdb:
+      password: '<password-for-n8n-user>'
