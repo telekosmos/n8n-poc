@@ -41,4 +41,6 @@ We chosen [this excellent char](https://artifacthub.io/packages/helm/open-8gears
 From the project root:
 `helm install n8n-poc oci://8gears.container-registry.com/library/n8n --version 0.20.1 -f chart/n8n-values.yaml`
 
-As in the case of the postgresql deployment, we need to forward the port from the host to the container port in order to get host connectivity to the n8n instance. That is documented similarly to the postgres deployment just after the installation.
+As in the case of the postgresql deployment, we need to **forward the port** from the host to the container port in order to get host connectivity to the n8n instance from outside the cluster. That is documented similarly to the postgres deployment just after the installation.
+
+
