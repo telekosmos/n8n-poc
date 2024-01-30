@@ -26,6 +26,35 @@ In addition, we need to create _manually_ the database and user (and its passwor
 
 ## Deployment to kubernetes
 
+### TL;DR
+
+After updating the `yaml` files with the right values
+```
+docker-compose -f docker-compose-pg-minikube.yml up -d # to start sftp and kafke if necessary in the same minikube network
+
+helm install postgresn8n cetic/postgresql -f chart/pg-values.yaml # postgres backend for n8n in minikube
+
+kubectl port-forward --namespace default svc/postgresn8n-postgresql 15432:5432 &
+
+psql --host 127.0.0.1 -p 15432 -U postgres -d postgres
+postgres@127:postgres> create user n8n with password 'n8np0stgr3s';
+CREATE ROLE
+postgres@127:postgres> create database n8ndb;
+CREATE DATABASE
+postgres@127:postgres> \c n8ndb postgres
+You are now connected to database "n8ndb" as user "postgres"
+postgres@127:n8ndb> grant all privileges on database n8ndb to n8n;
+GRANT
+postgres@127:n8ndb> \q
+Goodbye!
+
+helm install n8n-poc oci://8gears.container-registry.com/library/n8n --version 0.20.1 -f chart/n8n-values.yaml
+
+kubectl port-forward --namespace default svc/n8n-poc 8888:80 &
+
+# connect to n8n as http://localhost:8888
+```
+
 ### In-cluster PostgreSQL backend
 
 To do this from scratch we need a Postgres database in the cluster. We'll use a helm chart as there are plenty of options for postgres. We'll choose a simple one for this POC by installing the chart build by the cetic org, which can be found in [artifacthub](https://artifacthub.io/packages/helm/cetic/postgresql). Just follow the instructions to install.
