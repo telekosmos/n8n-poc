@@ -1,0 +1,162 @@
+{
+  "active": false,
+  "connections": {
+    "Transform users": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "users to JSON": {
+      "main": [
+        [
+          {
+            "node": "Transform users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Trigger": {
+      "main": [
+        [
+          {
+            "node": "users to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-31T10:24:59.466Z",
+  "id": "E6pzUMvoIgS6alI3",
+  "meta": null,
+  "name": "Users - redis2mongo",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "={{ $json.topic+'_profile' }}",
+        "fields": "={{ Object.keys($json).map((f, i) => i === 0 ? null: f).filter(e => e != null).join(',') }}",
+        "options": {
+          "dateFields": "created_at,updated_at"
+        }
+      },
+      "id": "83bc6b10-db5c-40ba-8e73-dcac19ca5309",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        460
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "Vg61p8p2twCDfqz8",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ Object.assign({ topic: $json.topic }, $json.payload) }}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "b04128aa-71a6-4b5c-a84d-0921e3f396dd",
+      "name": "Transform users",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1040,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  topic: \"{{ $input.item.json.channel }}\",\n  payload: {{ $input.item.json.message }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "a20e9ba9-aa30-459b-beb6-4b446a3faace",
+      "name": "users to JSON",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        740,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "channels": "users",
+        "options": {}
+      },
+      "id": "f86b233f-9b4b-4b27-829d-08efe6cbab07",
+      "name": "Redis Trigger",
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        440,
+        320
+      ],
+      "credentials": {
+        "redis": {
+          "id": "UMqetkOzGJ6FNfTQ",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Redis Trigger": [
+      {
+        "json": {
+          "channel": "users",
+          "message": "{'user_id': 518, 'username': 'ysullivan', 'email': 'thomas15@yahoo.com', 'name': 'Jason Green', 'phone': '+1-701-360-9753', 'address': '9382 Taylor Court Suite 892\\nCoreyland, MH 90152', 'ssn': '656-27-9053', 'created_at': 1706696848492, 'updated_at': 1706696848492}"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "users to JSON": [
+      {
+        "json": {
+          "topic": "users",
+          "payload": {
+            "user_id": 518,
+            "username": "ysullivan",
+            "email": "thomas15@yahoo.com",
+            "name": "Jason Green",
+            "phone": "+1-701-360-9753",
+            "address": "9382 Taylor Court Suite 892\nCoreyland, MH 90152",
+            "ssn": "656-27-9053",
+            "created_at": 1706696848492,
+            "updated_at": 1706696848492
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-31T10:54:21.123Z",
+  "versionId": "7100bbb8-c9c5-4485-8f5b-e8b595900095"
+}
