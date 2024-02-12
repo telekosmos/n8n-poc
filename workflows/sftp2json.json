@@ -1,0 +1,172 @@
+{
+  "active": false,
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "FTP": {
+      "main": [
+        [
+          {
+            "node": "Spreadsheet File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spreadsheet File": {
+      "main": [
+        [
+          {
+            "node": "Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapping": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "FTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-31T10:03:04.196Z",
+  "id": "xZK6lwgcQBP0NjcZ",
+  "meta": null,
+  "name": "sftp2json",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "id": "b9105a3f-1de6-4c89-8667-daa610df18c9",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        460
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "protocol": "sftp",
+        "path": "/upload/henryjohnson.xlsx"
+      },
+      "id": "4faa5431-0444-466f-a4e2-d8fb74a72777",
+      "name": "FTP",
+      "type": "n8n-nodes-base.ftp",
+      "typeVersion": 1,
+      "position": [
+        680,
+        460
+      ],
+      "credentials": {
+        "sftp": {
+          "id": "fzw7I3OXiKjvvh38",
+          "name": "SFTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileFormat": "xlsx",
+        "options": {}
+      },
+      "id": "78911bd3-fbeb-4194-83cb-a782141ec9de",
+      "name": "Spreadsheet File",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        900,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "test",
+        "fields": "={{ Object.keys($json).join(',') }}",
+        "options": {}
+      },
+      "id": "a04994ce-fc2b-477e-a090-0e019a31fd31",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        460
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "Vg61p8p2twCDfqz8",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"vintage\": {{ typeof $json.Vintage === 'string' ? 0: $json.Vintage }},\n  \"alcohol_by_volume\": {{ $ifEmpty($json.ABV, 0) }},\n  \"itemId\": \"{{ $json[\"Catalogue Item\"] }}\",\n  \"duty\": \"{{ $json['Duty Paid'] }}\",\n  \"case_size\": {{ $json['Case size'] }},\n  \"customerPL\": {{ $json[\"Customer P&L\"] }}\n} ",
+        "include": "selected",
+        "options": {}
+      },
+      "id": "2fb26d5f-02b7-42bd-9327-24c5cc298b02",
+      "name": "Mapping",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        460
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "ab899f04-46d5-4549-847d-ddc57d84cdfc",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        440,
+        220
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-31T10:04:55.141Z",
+  "versionId": "a0005b75-8660-4ede-ace5-280101e40f6b"
+}
