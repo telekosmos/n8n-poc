@@ -1,0 +1,176 @@
+{
+  "active": true,
+  "connections": {
+    "Convert to object": {
+      "main": [
+        [
+          {
+            "node": "Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform": {
+      "main": [
+        [
+          {
+            "node": "S3Constants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3Constants": {
+      "main": [
+        [
+          {
+            "node": "AWS S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Trigger": {
+      "main": [
+        [
+          {
+            "node": "Convert to object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2024-01-31T11:03:42.833Z",
+  "id": "PO2lxed5ORgrHrTY",
+  "meta": null,
+  "name": "redis2s3 - user behaviour events",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{  JSON.stringify({\n  folder: $input.item.json.channel,\n  payload: JSON.parse($json.message.replace(/'/g, '\"').replace(/None/g, null))\n})\n}}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "444adaf6-7de3-44fd-88ca-ffe1dd661f55",
+      "name": "Convert to object",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"rootFolder\": \"{{ $json.folder }}\",\n  \"leafFolder\": \"{{ new Date($json.payload.occurred_at).getFullYear() }}/{{ (new Date($json.payload.occurred_at).getMonth()+1).toString().padStart(2, 0) }}/{{ new Date($json.payload.occurred_at).getDate().toString().padStart(2, 0) }}/{{ new Date($json.payload.occurred_at).getHours().toString().padStart(2, 0) }}/{{ new Date($json.payload.occurred_at).getMinutes().toString().padStart(2, 0) }}\",\n  \"content\": {{ $json.payload }}\n}",
+        "include": "none",
+        "options": {}
+      },
+      "id": "9befb206-b294-40ad-bc5b-c2933e3141a8",
+      "name": "Transform",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        980,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "=rootFolder",
+              "stringValue": "={{ $json.rootFolder }}"
+            },
+            {
+              "name": "folder",
+              "stringValue": "={{ $json.leafFolder }}"
+            },
+            {
+              "name": "filename",
+              "stringValue": "={{ $json.leafFolder.split('/').join('')+'_'+new Date($json.content.occurred_at).getTime()+'_'+$json.content.user_id+'_'+$json.content.item_id }}.json"
+            },
+            {
+              "name": "category",
+              "stringValue": "={{ $json.content.behavior }}"
+            }
+          ]
+        },
+        "include": "none",
+        "options": {}
+      },
+      "id": "1d6b62de-5f1c-4872-9f31-0f6472d3f2eb",
+      "name": "S3Constants",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1220,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "poc-n8n-telekosmos",
+        "fileName": "={{ $json.rootFolder }}/{{ $json.folder }}/{{ $json.category }}/{{ $json.filename }}",
+        "binaryData": false,
+        "fileContent": "={{ JSON.stringify($('Transform').item.json.content) }}",
+        "additionalFields": {}
+      },
+      "id": "3cb24367-e08e-4237-94e6-224737c0f5f7",
+      "name": "AWS S3",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        460
+      ],
+      "credentials": {
+        "aws": {
+          "id": "EXg6MUzOaShHNktg",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channels": "user-behaviour",
+        "options": {
+          "jsonParseBody": false
+        }
+      },
+      "id": "34c1094d-ab5d-4f59-a5ec-1a549cf6da72",
+      "name": "Redis Trigger",
+      "type": "n8n-nodes-base.redisTrigger",
+      "typeVersion": 1,
+      "position": [
+        400,
+        460
+      ],
+      "credentials": {
+        "redis": {
+          "id": "UMqetkOzGJ6FNfTQ",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-31T11:42:06.538Z",
+  "versionId": "07f2c64b-9834-4eab-a5b3-a3262fdb7f68"
+}
