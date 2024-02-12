@@ -1,0 +1,29 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    meta.helm.sh/release-name: n8n-poc-worker
+    meta.helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/instance: n8n-poc-worker
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/version: 1.22.3
+    helm.sh/chart: n8n-0.20.1
+  name: n8n-poc-worker
+  namespace: default
+spec:
+  maxReplicas: 8
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+        type: Utilization
+    type: Resource
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: n8n-poc-worker
+

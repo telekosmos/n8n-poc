@@ -80,4 +80,56 @@ From the project root, run:
 
 As in the case of the postgresql deployment, we need to **forward the port** from the host to the container port in order to get host connectivity to the n8n instance from outside the cluster. That is documented similarly to the postgres deployment just after the installation.
 
+### n8n limited high availability
 
+Install a redis instance using a helm chart
+
+```
+$ helm install n8nredis oci://registry-1.docker.io/bitnamicharts/redis
+```
+
+Then, follow the instructions printed after emitting the previous command. In short
+```
+# get the password for redis
+$ kubectl get secret --namespace default n8nredis -o jsonpath="{.data.redis-password}" | base64 -d
+$ export REDIS_PASSWORD=$(kubectl get secret --namespace default n8nredis -o jsonpath="{.data.redis-password}" | base64 -d)
+
+# deploy a redis client in the cluster as a pod
+$ kubectl run --namespace default redis-client --restart='Never'  --env REDIS_PASSWORD=$REDIS_PASSWORD  --image docker.io/bitnami/redis:7.2.4-debian-11-r2 --command -- sleep infinity
+
+# access to the pod and run the redis-cli program as usual to check if n8nredis-master and n8nredis-replicas are up and running
+$ kubectl exec -i -t redis-client -n default -- bash
+
+# forward ports to be able to access redis from this world (here we use port 16379 to avoid confusions)
+$ kubectl port-forward --namespace default svc/n8nredis-master 16379:6379 &
+```
+
+#### Main instance autoscaling
+After deploying redis in the cluster, just update the `values.yaml` file to allow n8n work in [queue mode](https://docs.n8n.io/hosting/scaling/queue-mode/):
+- set `scaling.enabled` to true
+- choose the number of workers to be spawned in the cluster
+- configure redis host parameters to be n8n able to communicate with it
+
+> This configuration will _autoscale_ the main instances but **not** the workers which is a bit counterintuitive as with high load you will see many main instances spawning but the workers keeps in a stable number. This might not be the desired behaviour.
+
+#### Worker instances autoscaling
+As it is the workers [who run the workflows](https://docs.n8n.io/hosting/scaling/queue-mode/#how-it-works) (but for those triggered [manually](https://docs.n8n.io/hosting/scaling/queue-mode/#running-n8n-with-queues)), it can be considered to be the workers which should be autoscaled. In order to do this one:
+- to keep just one main instance, let's set `.Values.autoscaling.enabled` to `false`
+- add a new configuration to your _values_ file just like
+```yaml
+workerResources:
+  limits:
+    cpu: 1000m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+```
+- deploy n8n as described [above](#n8n-limited-high-availability)
+- then, deploy the `hpa-workder.yaml` (`kubectl apply -f hpa-worker.yaml`). You might need to update the `.spec.metrics` properties to adapt to your cluster and your needs
+
+With this deployment, there will be _always_ just one main n8n instance and, depending on the workload, multiple workers will be spawned and removed automatically to adapt resources to the needs.
+
+We've observed that is necessary to explicitly define resource limits for both main and worker instances to be able to send metrics to the cluster's `metrics-server`. Otherwise, the metrics server won't get metrics and _horizontal pod autoscaler (HPA)_ won't be able to autoscale resources depending on workloads.
+
+The values for the `.Values.resources` and `.Values.workerResources` might be some tweak as well to adapt to the particular cluster.
