@@ -1,6 +1,6 @@
-# n8n with PostgreSQL backend
+# n8n custom deploymments
 
-## Deployment to `docker-compose`
+## Deployment to Docker Compose
 > This taken from [https://github.com/n8n-io/n8n/tree/master/docker/compose/withPostgres](https://github.com/n8n-io/n8n/tree/master/docker/compose/withPostgres) and patched for PostgreSQL 15+.
 
 In order for this to work you have to create a **`.env`** file to be in the same folder as the docker compose descriptor file. **Be aware this file will be available to docker containers when `docker-compose up` is run** ([more on this](https://docs.docker.com/compose/environment-variables/set-environment-variables/)). In this file there has to be at least assigned variables:
@@ -24,7 +24,7 @@ Also mind the named of the environment variables in ([docker-compose-neon.yml](.
 In addition, we need to create _manually_ the database and user (and its password) and grant privileges _before_ starting our n8n instance (otherwise we'll get a `DatabaseError` error).
 
 
-## Deployment to kubernetes
+## Deployment to Kubernetes
 
 ### TL;DR
 
@@ -102,7 +102,18 @@ $ kubectl exec -i -t redis-client -n default -- bash
 
 # forward ports to be able to access redis from this world (here we use port 16379 to avoid confusions)
 $ kubectl port-forward --namespace default svc/n8nredis-master 16379:6379 &
+
+# deploy n8n instance to kubernetes
+helm install n8n-poc oci://8gears.container-registry.com/library/n8n --version 0.20.1 -f <custom-values.yaml>
+
+# forward n8n port to be able to access from terminal (in the case of minikube at least)
+kubectl port-forward --namespace default svc/n8n-poc 8888:80 &
+
+# then, form a browser, http://localhost:8888/ will bring n8n
+
 ```
+
+> **Note** To create a **n8n credential** in the deployed n8n to access to n8n API from the workflows, the address of the _Base URL_ has to be **the IP of the main service in the cluster** and not the address n8n is accessed from the outside. In the case of our tests with _minikube_ we access to n8n from the browser through `http://localhost:8888` (arbitrary post), but to set the credential the _Base URL_ is `http://10.109.132.115:80/api/v1`, being the IP the service address.
 
 #### Main instance autoscaling
 After deploying redis in the cluster, just update the `values.yaml` file to allow n8n work in [queue mode](https://docs.n8n.io/hosting/scaling/queue-mode/):
@@ -133,3 +144,18 @@ With this deployment, there will be _always_ just one main n8n instance and, dep
 We've observed that is necessary to explicitly define resource limits for both main and worker instances to be able to send metrics to the cluster's `metrics-server`. Otherwise, the metrics server won't get metrics and _horizontal pod autoscaler (HPA)_ won't be able to autoscale resources depending on workloads.
 
 The values for the `.Values.resources` and `.Values.workerResources` might be some tweak as well to adapt to the particular cluster.
+
+##### Workload testing
+
+Using the above configuration with workers autoscaling (max to 8) and verbosity of n8n main and workers instances to _info_ (it might slow the workflow processing), a performance/workload test was carried out:
+- macos sonora 2 GHz Quad-Core Intel Core i5 and 16Gb RAM
+- minikube cluster with postgresql, redis and n8n in queue mode worker autoscaling deployed
+- two **simultaneous** message producers written in python, sending 11K and 10K messages with maximun delay of 0.2 and 0.3 seconds each (from terminal)
+- message broker was the same redis instance used by n8n to support queue mode
+- the [processing workflow](https://github.com/telekosmos/n8n-poc/blob/main/workflows/redis2s3%20-%20user%20behaviour%20events.json) is a simple workflow to pick the message, do some simple transformations on messages and send them to S3.
+
+Overall, performance was sufficient to good. All messages where picked up by the n8n autoscaling instance and sending in real time to S3, with no substantial delay observed.
+
+While processing the messages the n8n designer got a bit responsive, so in a production environment the deployment should be devoted only to run workflows and leaving the development (and ideally staging) instances for workflow development.
+
+All of the workers were over the top on max memory resource used (they went red in `k9s`). As mentioned, a more custom tweak based on trials might be necessary.
