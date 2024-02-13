@@ -1,0 +1,72 @@
+# values.yaml
+
+n8n:
+  encryption_key: my-secret-encryption-key
+  
+extraEnv:
+  N8N_LOG_LEVEL: info
+
+config:
+  database:
+    type: postgresdb
+    postgresdb:
+      database: n8ndb
+      # host: 10.97.45.104
+      host: postgresn8n-postgresql
+      user: n8n
+      password: '<n8n-user-password>'
+
+secret:
+  database:
+    postgresdb:
+      password: '<n8n-user-password>'
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+workerResources:
+  limits:
+    cpu: 1000m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+    
+replicaCount: 1
+# autoscaling:
+#   enabled: true
+#   minReplicas: 1
+#   maxReplicas: 6
+#   targetCPUUtilizationPercentage: 80
+
+# no autoscaling for workers!!! -> need to do a PR to update hpa to autoscale workers???
+scaling:
+  enabled: true
+
+  worker:
+    count: 2
+    concurrency: 2
+  # With .Values.scaling.webhook.enabled=true you disable Webhooks from the main process but you enable the processing on a different Webhook instance.
+  # See https://github.com/8gears/n8n-helm-chart/issues/39#issuecomment-1579991754 for the full explanation.
+  webhook:
+    enabled: false
+    count: 1
+
+  redis:
+    host: n8nredis-master.default.svc.cluster.local
+    password: <n8nredis-master.default.svc.cluster.local-password>

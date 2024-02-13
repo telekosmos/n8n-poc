@@ -1,5 +1,7 @@
 # values.yaml
-
+n8n:
+  encryption_key: my-secret-encryption-key
+  
 config:
   database:
     type: postgresdb
@@ -13,3 +15,19 @@ secret:
   database:
     postgresdb:
       password: '<password-for-n8n-user>'
+
+scaling:
+  enabled: true
+
+  worker:
+    count: 2
+    concurrency: 2
+  # With .Values.scaling.webhook.enabled=true you disable Webhooks from the main process but you enable the processing on a different Webhook instance.
+  # See https://github.com/8gears/n8n-helm-chart/issues/39#issuecomment-1579991754 for the full explanation.
+  webhook:
+    enabled: false
+    count: 1
+
+  redis:
+    host: <your-redis-host>
+    password: <password-for-redis-host>
