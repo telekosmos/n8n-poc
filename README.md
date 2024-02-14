@@ -146,7 +146,7 @@ We've observed that is necessary to explicitly define resource limits for both m
 
 The values for the `.Values.resources` and `.Values.workerResources` might need some tweak as well to adapt to the particular cluster.
 
-##### Workload testing
+## Workload testing
 
 Using the above configuration with workers autoscaling (max to 8 pods) and verbosity of n8n main and workers instances to _info_ (it might slow the workflow processing), a performance/workload test was carried out:
 - macos sonoma 14.3, 2 GHz Quad-Core Intel Core i5 and 16Gb RAM
@@ -154,6 +154,7 @@ Using the above configuration with workers autoscaling (max to 8 pods) and verbo
 - two **simultaneous** message producers written in python, publishing 11K and 10K messages with maximum delay of 0.2 and 0.3 seconds each (from terminal)
 - message broker was the same redis instance used by n8n to support queue mode
 - the [processing workflow](https://github.com/telekosmos/n8n-poc/blob/main/workflows/redis2s3%20-%20user%20behaviour%20events.json) is a simple workflow to pick the message, do some simple transformations on messages and send them to S3.
+- the messages published were _fake_ user behaviours. In order to do it, you can check [this PR](https://github.com/telekosmos/fake-data-producer-for-kafka/pull/1) and also the files involved in the script related ([user producer](https://github.com/telekosmos/fake-data-producer-for-kafka/blob/main/userproducer.py) and [user behaviours producer](https://github.com/telekosmos/fake-data-producer-for-kafka/blob/main/userbehaviorproducer.py))
 
 Overall, performance was sufficient to good. All messages where picked up by the n8n autoscaling instance and sent in real time to S3, with no substantial delay observed.
 
